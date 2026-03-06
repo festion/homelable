@@ -1,0 +1,41 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
+from app.db.database import init_db
+from app.api.routes import auth, nodes, edges, canvas, scan, status
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(
+    title="Homelable API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(nodes.router, prefix="/api/v1/nodes", tags=["nodes"])
+app.include_router(edges.router, prefix="/api/v1/edges", tags=["edges"])
+app.include_router(canvas.router, prefix="/api/v1/canvas", tags=["canvas"])
+app.include_router(scan.router, prefix="/api/v1/scan", tags=["scan"])
+app.include_router(status.router, prefix="/api/v1/status", tags=["status"])
+
+
+@app.get("/api/v1/health")
+async def health():
+    return {"status": "ok"}

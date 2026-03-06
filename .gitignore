@@ -1,0 +1,50 @@
+# Claude / project meta — never commit
+CLAUDE.md
+FEATURES.md
+.claude/
+_project_specs/
+
+# Environment files - NEVER commit
+.env
+.env.*
+!.env.example
+
+# Secrets
+*.pem
+*.key
+*.p12
+credentials.json
+secrets.json
+service-account*.json
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/settings.json
+.DS_Store
+
+# Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Docker
+.docker/
