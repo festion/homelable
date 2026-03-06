@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 describe('authStore', () => {
   beforeEach(() => {
+    localStorage.clear()
     useAuthStore.setState({ token: null, isAuthenticated: false })
   })
 
