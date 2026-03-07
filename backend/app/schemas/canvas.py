@@ -34,6 +34,7 @@ class EdgeSave(BaseModel):
     label: str | None = None
     vlan_id: int | None = None
     speed: str | None = None
+    custom_color: str | None = None
 
 
 class CanvasSaveRequest(BaseModel):

@@ -25,6 +25,8 @@ async def init_db() -> None:
             await conn.exec_driver_sql("ALTER TABLE nodes ADD COLUMN container_mode BOOLEAN NOT NULL DEFAULT 0")
         with suppress(Exception):
             await conn.exec_driver_sql("ALTER TABLE nodes ADD COLUMN custom_colors JSON")
+        with suppress(Exception):
+            await conn.exec_driver_sql("ALTER TABLE edges ADD COLUMN custom_color TEXT")
 
 
 async def get_db():

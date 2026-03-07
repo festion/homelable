@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { RotateCcw } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { EDGE_TYPE_LABELS, type EdgeData, type EdgeType } from '@/types'
+import { EDGE_DEFAULT_COLORS } from '@/utils/edgeColors'
 
 const EDGE_TYPES = Object.entries(EDGE_TYPE_LABELS) as [EdgeType, string][]
 
@@ -21,6 +23,9 @@ export function EdgeModal({ open, onClose, onSubmit, onDelete, initial, title = 
   const [type, setType] = useState<EdgeType>(initial?.type ?? 'ethernet')
   const [label, setLabel] = useState(initial?.label ?? '')
   const [vlanId, setVlanId] = useState(initial?.vlan_id?.toString() ?? '')
+  const [customColor, setCustomColor] = useState<string | undefined>(initial?.custom_color)
+
+  const effectiveColor = customColor ?? EDGE_DEFAULT_COLORS[type]
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +33,7 @@ export function EdgeModal({ open, onClose, onSubmit, onDelete, initial, title = 
       type,
       label: label || undefined,
       vlan_id: type === 'vlan' && vlanId ? parseInt(vlanId) : undefined,
+      custom_color: customColor,
     })
     onClose()
   }
@@ -82,6 +88,37 @@ export function EdgeModal({ open, onClose, onSubmit, onDelete, initial, title = 
               placeholder="e.g. 1G, trunk..."
               className="bg-[#21262d] border-[#30363d] text-sm h-8"
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-muted-foreground">Color</Label>
+              {customColor && (
+                <button
+                  type="button"
+                  onClick={() => setCustomColor(undefined)}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                >
+                  <RotateCcw size={10} /> Reset
+                </button>
+              )}
+            </div>
+            <label
+              className="relative flex items-center gap-2.5 px-2.5 h-8 rounded-md border cursor-pointer"
+              style={{ borderColor: customColor ? effectiveColor : '#30363d', background: '#21262d' }}
+            >
+              <input
+                type="color"
+                value={effectiveColor}
+                onChange={(e) => setCustomColor(e.target.value)}
+                className="absolute opacity-0 w-0 h-0"
+              />
+              <div className="w-4 h-4 rounded-sm shrink-0 border border-white/10" style={{ background: effectiveColor }} />
+              <span className="font-mono text-xs" style={{ color: customColor ? effectiveColor : '#8b949e' }}>
+                {effectiveColor}
+              </span>
+              {!customColor && <span className="text-[10px] text-muted-foreground/50 ml-auto">default</span>}
+            </label>
           </div>
 
           <div className="flex justify-between gap-2 pt-1">

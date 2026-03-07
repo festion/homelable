@@ -10,6 +10,7 @@ class EdgeBase(BaseModel):
     label: str | None = None
     vlan_id: int | None = None
     speed: str | None = None
+    custom_color: str | None = None
 
 
 class EdgeCreate(EdgeBase):
@@ -21,6 +22,7 @@ class EdgeUpdate(BaseModel):
     label: str | None = None
     vlan_id: int | None = None
     speed: str | None = None
+    custom_color: str | None = None
 
 
 class EdgeResponse(EdgeBase):

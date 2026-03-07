@@ -54,6 +54,7 @@ class Edge(Base):
     label: Mapped[str | None] = mapped_column(String)
     vlan_id: Mapped[int | None] = mapped_column(Integer)
     speed: Mapped[str | None] = mapped_column(String)
+    custom_color: Mapped[str | None] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 

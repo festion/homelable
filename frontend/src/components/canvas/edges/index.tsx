@@ -26,9 +26,11 @@ export function HomelableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePo
   const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
 
   const edgeType: EdgeType = data?.type ?? 'ethernet'
+  const customColor = data?.custom_color as string | undefined
   const style: React.CSSProperties = {
     ...EDGE_STYLES[edgeType],
     ...(edgeType === 'vlan' ? { stroke: getVlanColor(data?.vlan_id as number | undefined) } : {}),
+    ...(customColor ? { stroke: customColor } : {}),
     ...(selected ? { stroke: '#00d4ff', filter: 'drop-shadow(0 0 4px #00d4ff88)' } : {}),
   }
 

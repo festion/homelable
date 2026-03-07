@@ -49,6 +49,7 @@ export interface EdgeData extends Record<string, unknown> {
   label?: string
   vlan_id?: number
   speed?: string
+  custom_color?: string
 }
 
 export const NODE_TYPE_LABELS: Record<NodeType, string> = {
