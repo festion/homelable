@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Network, Plus, Save, ScanLine, ChevronLeft, ChevronRight, LayoutDashboard, Clock, EyeOff, Check, EyeOff as Hide, Trash2, RefreshCw, Loader2 } from 'lucide-react'
+import { Network, Plus, Save, ScanLine, ChevronLeft, ChevronRight, LayoutDashboard, Clock, EyeOff, Trash2, RefreshCw, Loader2 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useCanvasStore } from '@/stores/canvasStore'
 import { scanApi } from '@/api/client'
 import { toast } from 'sonner'
+import { PendingDeviceModal, type PendingDevice } from '@/components/modals/PendingDeviceModal'
 
 type SidebarView = 'canvas' | 'pending' | 'hidden' | 'history'
 
@@ -13,18 +14,6 @@ const VIEWS = [
   { id: 'hidden' as SidebarView, icon: EyeOff, label: 'Hidden Devices' },
   { id: 'history' as SidebarView, icon: Clock, label: 'Scan History' },
 ]
-
-interface PendingDevice {
-  id: string
-  ip: string
-  mac: string | null
-  hostname: string | null
-  os: string | null
-  services: unknown[]
-  suggested_type: string | null
-  status: string
-  discovered_at: string
-}
 
 interface ScanRun {
   id: string
@@ -150,6 +139,7 @@ export function Sidebar({ onAddNode, onScan, onSave }: SidebarProps) {
 function PendingDevicesPanel() {
   const [devices, setDevices] = useState<PendingDevice[]>([])
   const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState<PendingDevice | null>(null)
   const { addNode, scanEventTs } = useCanvasStore()
 
   const load = useCallback(async () => {
@@ -164,10 +154,8 @@ function PendingDevicesPanel() {
     }
   }, [])
 
-  // Load on mount
   useEffect(() => { load() }, [load])
 
-  // Auto-refresh when the backend pushes a scan_device_found event
   useEffect(() => {
     if (scanEventTs > 0) load()
   }, [scanEventTs, load])
@@ -197,50 +185,69 @@ function PendingDevicesPanel() {
     }
   }
 
-  const handleHide = async (id: string) => {
+  const handleHide = async (device: PendingDevice) => {
     try {
-      await scanApi.hide(id)
-      setDevices((prev) => prev.filter((d) => d.id !== id))
+      await scanApi.hide(device.id)
+      setDevices((prev) => prev.filter((d) => d.id !== device.id))
       toast.success('Device hidden')
     } catch {
       toast.error('Failed to hide device')
     }
   }
 
-  const handleIgnore = async (id: string) => {
+  const handleIgnore = async (device: PendingDevice) => {
     try {
-      await scanApi.ignore(id)
-      setDevices((prev) => prev.filter((d) => d.id !== id))
+      await scanApi.ignore(device.id)
+      setDevices((prev) => prev.filter((d) => d.id !== device.id))
     } catch {
       toast.error('Failed to ignore device')
     }
   }
 
   return (
-    <div className="p-2">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending</span>
-        <button onClick={load} className="text-muted-foreground hover:text-foreground p-0.5">
-          <RefreshCw size={12} />
-        </button>
-      </div>
-      {loading && <Loader2 size={14} className="animate-spin text-muted-foreground mx-auto my-4" />}
-      {!loading && devices.length === 0 && (
-        <p className="text-xs text-muted-foreground text-center py-4">No pending devices</p>
-      )}
-      {devices.map((d) => (
-        <div key={d.id} className="mb-2 p-2 rounded-md bg-[#21262d] text-xs">
-          <div className="font-mono text-foreground">{d.ip}</div>
-          {d.hostname && <div className="text-muted-foreground truncate">{d.hostname}</div>}
-          {d.os && <div className="text-muted-foreground truncate text-[10px]">{d.os}</div>}
-          <div className="flex gap-1 mt-1.5">
-            <ActionButton icon={Check} label="Approve" color="green" onClick={() => handleApprove(d)} />
-            <ActionButton icon={Hide} label="Hide" onClick={() => handleHide(d.id)} />
-            <ActionButton icon={Trash2} label="Ignore" color="red" onClick={() => handleIgnore(d.id)} />
-          </div>
+    <>
+      <div className="p-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pending</span>
+          <button onClick={load} className="text-muted-foreground hover:text-foreground p-0.5">
+            <RefreshCw size={12} />
+          </button>
         </div>
-      ))}
-    </div>
+        {loading && <Loader2 size={14} className="animate-spin text-muted-foreground mx-auto my-4" />}
+        {!loading && devices.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">No pending devices</p>
+        )}
+        {devices.map((d) => (
+          <button
+            key={d.id}
+            onClick={() => setSelected(d)}
+            className="w-full mb-1.5 p-2 rounded-md bg-[#21262d] text-xs text-left hover:bg-[#30363d] transition-colors border border-transparent hover:border-[#30363d]"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#e3b341] shrink-0" />
+              <span className="font-mono text-foreground truncate">{d.ip}</span>
+              {d.services.length > 0 && (
+                <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                  {d.services.length} svc
+                </span>
+              )}
+            </div>
+            {d.hostname && <div className="text-muted-foreground truncate pl-3 text-[10px] mt-0.5">{d.hostname}</div>}
+            {d.suggested_type && (
+              <div className="text-[#8b949e] truncate pl-3 text-[10px]">{d.suggested_type}</div>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <PendingDeviceModal
+        device={selected}
+        onClose={() => setSelected(null)}
+        onApprove={handleApprove}
+        onHide={handleHide}
+        onIgnore={handleIgnore}
+      />
+    </>
   )
 }
 
