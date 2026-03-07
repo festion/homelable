@@ -30,6 +30,8 @@ async def init_db() -> None:
             await conn.exec_driver_sql("ALTER TABLE edges ADD COLUMN custom_color TEXT")
         with suppress(Exception):
             await conn.exec_driver_sql("ALTER TABLE edges ADD COLUMN path_style TEXT")
+        with suppress(Exception):
+            await conn.exec_driver_sql("ALTER TABLE nodes ADD COLUMN custom_icon TEXT")
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

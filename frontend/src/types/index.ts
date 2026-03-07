@@ -42,6 +42,7 @@ export interface NodeData extends Record<string, unknown> {
   parent_id?: string
   container_mode?: boolean
   custom_colors?: { border?: string; background?: string; icon?: string }
+  custom_icon?: string
 }
 
 export type EdgePathStyle = 'bezier' | 'smooth'

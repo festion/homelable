@@ -21,6 +21,7 @@ class NodeBase(BaseModel):
     parent_id: str | None = None
     container_mode: bool = False
     custom_colors: dict[str, Any] | None = None
+    custom_icon: str | None = None
 
 
 class NodeCreate(NodeBase):
@@ -43,6 +44,7 @@ class NodeUpdate(BaseModel):
     pos_y: float | None = None
     container_mode: bool | None = None
     custom_colors: dict[str, Any] | None = None
+    custom_icon: str | None = None
 
 
 class NodeResponse(NodeBase):

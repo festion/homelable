@@ -36,6 +36,7 @@ class Node(Base):
     parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("nodes.id"))
     container_mode: Mapped[bool] = mapped_column(Boolean, default=False)
     custom_colors: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    custom_icon: Mapped[str | None] = mapped_column(String, nullable=True)
     last_seen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     response_time_ms: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

@@ -1,7 +1,9 @@
+import { createElement } from 'react'
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react'
 import { type LucideIcon } from 'lucide-react'
 import type { NodeData, NodeStatus } from '@/types'
 import { resolveNodeColors } from '@/utils/nodeColors'
+import { resolveNodeIcon } from '@/utils/nodeIcons'
 
 const STATUS_COLORS: Record<NodeStatus, string> = {
   online: '#39d353',
@@ -14,7 +16,8 @@ interface BaseNodeProps extends NodeProps<Node<NodeData>> {
   icon: LucideIcon
 }
 
-export function BaseNode({ data, selected, icon: Icon }: BaseNodeProps) {
+export function BaseNode({ data, selected, icon: typeIcon }: BaseNodeProps) {
+  const resolvedIcon = resolveNodeIcon(typeIcon, data.custom_icon)
   const colors = resolveNodeColors(data)
   const statusColor = STATUS_COLORS[data.status]
   const isOnline = data.status === 'online'
@@ -42,7 +45,7 @@ export function BaseNode({ data, selected, icon: Icon }: BaseNodeProps) {
         className="flex items-center justify-center w-7 h-7 rounded-md shrink-0"
         style={{ color: isOnline ? colors.icon : '#8b949e', background: '#161b22' }}
       >
-        <Icon size={15} />
+        {createElement(resolvedIcon, { size: 15 })}
       </div>
 
       {/* Details */}

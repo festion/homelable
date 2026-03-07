@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { RotateCcw } from 'lucide-react'
+import { createElement, useState } from 'react'
+import { RotateCcw, ChevronDown } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NODE_TYPE_LABELS, type NodeData, type NodeType, type CheckMethod } from '@/types'
 import { resolveNodeColors } from '@/utils/nodeColors'
+import { ICON_REGISTRY, ICON_CATEGORIES } from '@/utils/nodeIcons'
 
 const NODE_TYPES = Object.entries(NODE_TYPE_LABELS) as [NodeType, string][]
 
@@ -22,6 +23,7 @@ const DEFAULT_DATA: Partial<NodeData> = {
   services: [],
   container_mode: true,
   custom_colors: undefined,
+  custom_icon: undefined,
 }
 
 interface NodeModalProps {
@@ -39,6 +41,8 @@ const CHILD_TYPES: NodeType[] = ['vm', 'lxc']
 // initial value is enough — no need for a reset effect.
 export function NodeModal({ open, onClose, onSubmit, initial, title = 'Add Node', proxmoxNodes = [] }: NodeModalProps) {
   const [form, setForm] = useState<Partial<NodeData>>({ ...DEFAULT_DATA, ...initial })
+  const [iconSearch, setIconSearch] = useState('')
+  const [iconPickerOpen, setIconPickerOpen] = useState(false)
 
   const set = (key: keyof NodeData, value: unknown) =>
     setForm((f) => ({ ...f, [key]: value }))
@@ -74,6 +78,88 @@ export function NodeModal({ open, onClose, onSubmit, initial, title = 'Add Node'
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Icon */}
+            <div className="flex flex-col gap-1.5 col-span-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-muted-foreground">Icon</Label>
+                {form.custom_icon && (
+                  <button
+                    type="button"
+                    onClick={() => { set('custom_icon', undefined); setIconPickerOpen(false) }}
+                    className="flex items-center gap-1 text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  >
+                    <RotateCcw size={10} /> Reset
+                  </button>
+                )}
+              </div>
+              {/* Trigger button */}
+              <button
+                type="button"
+                onClick={() => setIconPickerOpen((o) => !o)}
+                className="flex items-center justify-between gap-2 h-8 px-3 rounded-md bg-[#21262d] border border-[#30363d] text-sm hover:border-[#8b949e] transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  {(() => {
+                    const entry = ICON_REGISTRY.find((e) => e.key === form.custom_icon)
+                    if (entry) {
+                      return <>{createElement(entry.icon, { size: 13, className: 'text-[#00d4ff]' })}<span className="text-foreground">{entry.label}</span></>
+                    }
+                    return <span className="text-muted-foreground">Default (from type)</span>
+                  })()}
+                </span>
+                <ChevronDown size={12} className="text-muted-foreground shrink-0" style={{ transform: iconPickerOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
+              </button>
+              {/* Inline picker panel */}
+              {iconPickerOpen && (
+                <div className="flex flex-col gap-2 p-2.5 rounded-md bg-[#0d1117] border border-[#30363d]">
+                  <Input
+                    value={iconSearch}
+                    onChange={(e) => setIconSearch(e.target.value)}
+                    placeholder="Search icons…"
+                    className="bg-[#21262d] border-[#30363d] text-xs h-7"
+                    autoFocus
+                  />
+                  <div className="flex flex-col gap-2 max-h-52 overflow-y-auto">
+                    {ICON_CATEGORIES.map((cat) => {
+                      const entries = ICON_REGISTRY.filter(
+                        (e) => e.category === cat &&
+                          (iconSearch === '' || e.label.toLowerCase().includes(iconSearch.toLowerCase()) || e.key.includes(iconSearch.toLowerCase()))
+                      )
+                      if (entries.length === 0) return null
+                      return (
+                        <div key={cat}>
+                          <p className="text-[9px] font-semibold text-muted-foreground/50 uppercase tracking-wider mb-1">{cat}</p>
+                          <div className="grid grid-cols-7 gap-1">
+                            {entries.map((entry) => {
+                              const isSelected = form.custom_icon === entry.key
+                              return (
+                                <button
+                                  key={entry.key}
+                                  type="button"
+                                  title={entry.label}
+                                  onClick={() => { set('custom_icon', isSelected ? undefined : entry.key); setIconPickerOpen(false) }}
+                                  className="flex items-center justify-center w-7 h-7 rounded transition-colors"
+                                  style={{
+                                    background: isSelected ? '#00d4ff22' : 'transparent',
+                                    border: isSelected ? '1px solid #00d4ff88' : '1px solid transparent',
+                                    color: isSelected ? '#00d4ff' : '#8b949e',
+                                  }}
+                                  onMouseEnter={(e) => { if (!isSelected) (e.currentTarget as HTMLButtonElement).style.background = '#21262d' }}
+                                  onMouseLeave={(e) => { if (!isSelected) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                                >
+                                  {createElement(entry.icon, { size: 13 })}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Label */}
