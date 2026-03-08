@@ -6,4 +6,5 @@ export const EDGE_DEFAULT_COLORS: Record<EdgeType, string> = {
   iot: '#e3b341',
   vlan: '#00d4ff',
   virtual: '#8b949e',
+  cluster: '#ff6e00',
 }

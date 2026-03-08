@@ -11,7 +11,7 @@ export type NodeType =
   | 'ap'
   | 'generic'
 
-export type EdgeType = 'ethernet' | 'wifi' | 'iot' | 'vlan' | 'virtual'
+export type EdgeType = 'ethernet' | 'wifi' | 'iot' | 'vlan' | 'virtual' | 'cluster'
 
 export type NodeStatus = 'online' | 'offline' | 'pending' | 'unknown'
 
@@ -83,4 +83,5 @@ export const EDGE_TYPE_LABELS: Record<EdgeType, string> = {
   iot: 'IoT / Zigbee',
   vlan: 'VLAN',
   virtual: 'Virtual',
+  cluster: 'Cluster',
 }

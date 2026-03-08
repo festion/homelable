@@ -21,6 +21,7 @@ const EDGE_STYLES: Record<EdgeType, React.CSSProperties> = {
   iot: { stroke: '#e3b341', strokeWidth: 1.5, strokeDasharray: '2 4' },
   vlan: { strokeWidth: 2.5 },
   virtual: { stroke: '#8b949e', strokeWidth: 1, strokeDasharray: '4 4' },
+  cluster: { stroke: '#ff6e00', strokeWidth: 2.5, strokeDasharray: '8 3' },
 }
 
 export function HomelableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, selected }: EdgeProps<Edge<EdgeData>>) {
