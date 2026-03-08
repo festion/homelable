@@ -120,6 +120,25 @@ async def test_save_canvas_persists_edge_custom_color_and_path_style(client: Asy
     assert edge["path_style"] == "smooth"
 
 
+async def test_save_canvas_persists_custom_icon(client: AsyncClient, headers: dict):
+    n1 = node_payload(custom_icon="cctv")
+    await client.post("/api/v1/canvas/save", json={"nodes": [n1], "edges": [], "viewport": {}}, headers=headers)
+
+    canvas = (await client.get("/api/v1/canvas", headers=headers)).json()
+    assert canvas["nodes"][0]["custom_icon"] == "cctv"
+
+
+async def test_save_canvas_custom_icon_cleared_when_null(client: AsyncClient, headers: dict):
+    n1 = node_payload(custom_icon="cctv")
+    await client.post("/api/v1/canvas/save", json={"nodes": [n1], "edges": [], "viewport": {}}, headers=headers)
+
+    n1_cleared = {**n1, "custom_icon": None}
+    await client.post("/api/v1/canvas/save", json={"nodes": [n1_cleared], "edges": [], "viewport": {}}, headers=headers)
+
+    canvas = (await client.get("/api/v1/canvas", headers=headers)).json()
+    assert canvas["nodes"][0]["custom_icon"] is None
+
+
 async def test_save_canvas_requires_auth(client: AsyncClient):
     res = await client.post("/api/v1/canvas/save", json={"nodes": [], "edges": [], "viewport": {}})
     assert res.status_code == 401

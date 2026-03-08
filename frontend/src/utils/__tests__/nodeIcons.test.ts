@@ -30,6 +30,7 @@ describe('ICON_REGISTRY', () => {
     expect(keys).toContain('anchor')    // Portainer
     expect(keys).toContain('key')       // Vaultwarden
     expect(keys).toContain('database')  // DB services
+    expect(keys).toContain('cctv')      // IP Camera / CCTV
   })
 })
 
