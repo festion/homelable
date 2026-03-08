@@ -263,6 +263,7 @@ export default function App() {
             onAddNode={() => setAddNodeOpen(true)}
             onScan={() => setScanConfigOpen(true)}
             onSave={handleSave}
+            onNodeApproved={setEditNodeId}
           />
           <div className="flex flex-col flex-1 min-w-0">
             <Toolbar

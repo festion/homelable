@@ -29,9 +29,10 @@ interface SidebarProps {
   onAddNode: () => void
   onScan: () => void
   onSave: () => void
+  onNodeApproved: (nodeId: string) => void
 }
 
-export function Sidebar({ onAddNode, onScan, onSave }: SidebarProps) {
+export function Sidebar({ onAddNode, onScan, onSave, onNodeApproved }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [activeView, setActiveView] = useState<SidebarView>('canvas')
   const { nodes, hasUnsavedChanges } = useCanvasStore()
@@ -90,7 +91,7 @@ export function Sidebar({ onAddNode, onScan, onSave }: SidebarProps) {
       {/* View content (only when expanded) */}
       {!collapsed && activeView !== 'canvas' && (
         <div className="flex-1 min-h-0 overflow-y-auto border-t border-border">
-          {activeView === 'pending' && <PendingDevicesPanel />}
+          {activeView === 'pending' && <PendingDevicesPanel onNodeApproved={onNodeApproved} />}
           {activeView === 'hidden' && <HiddenDevicesPanel />}
           {activeView === 'history' && <ScanHistoryPanel />}
         </div>
@@ -136,7 +137,7 @@ export function Sidebar({ onAddNode, onScan, onSave }: SidebarProps) {
   )
 }
 
-function PendingDevicesPanel() {
+function PendingDevicesPanel({ onNodeApproved }: { onNodeApproved: (nodeId: string) => void }) {
   const [devices, setDevices] = useState<PendingDevice[]>([])
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<PendingDevice | null>(null)
@@ -180,6 +181,7 @@ function PendingDevicesPanel() {
       })
       toast.success(`Approved ${nodeData.label}`)
       setDevices((prev) => prev.filter((d) => d.id !== device.id))
+      onNodeApproved(nodeId)
     } catch {
       toast.error('Failed to approve device')
     }
