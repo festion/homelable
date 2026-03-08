@@ -1,4 +1,4 @@
-import { IspNode, RouterNode, SwitchNode, ServerNode, VmNode, LxcNode, NasNode, IotNode, ApNode, CameraNode, PrinterNode, ComputerNode, GenericNode } from './index'
+import { IspNode, RouterNode, SwitchNode, ServerNode, VmNode, LxcNode, NasNode, IotNode, ApNode, CameraNode, PrinterNode, ComputerNode, CplNode, GenericNode } from './index'
 import { ProxmoxGroupNode } from './ProxmoxGroupNode'
 
 export const nodeTypes = {
@@ -15,5 +15,6 @@ export const nodeTypes = {
   camera: CameraNode,
   printer: PrinterNode,
   computer: ComputerNode,
+  cpl: CplNode,
   generic: GenericNode,
 }

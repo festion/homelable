@@ -1,7 +1,7 @@
 import { type NodeProps, type Node } from '@xyflow/react'
 import {
   Globe, Router, Network, Server, Layers, Box, Container,
-  HardDrive, Cpu, Wifi, Circle, Cctv, Printer, Monitor,
+  HardDrive, Cpu, Wifi, Circle, Cctv, Printer, Monitor, PlugZap,
 } from 'lucide-react'
 import { BaseNode } from './BaseNode'
 import type { NodeData } from '@/types'
@@ -21,4 +21,5 @@ export const ApNode      = (props: N) => <BaseNode {...props} icon={Wifi} />
 export const CameraNode   = (props: N) => <BaseNode {...props} icon={Cctv} />
 export const PrinterNode  = (props: N) => <BaseNode {...props} icon={Printer} />
 export const ComputerNode = (props: N) => <BaseNode {...props} icon={Monitor} />
+export const CplNode      = (props: N) => <BaseNode {...props} icon={PlugZap} />
 export const GenericNode  = (props: N) => <BaseNode {...props} icon={Circle} />

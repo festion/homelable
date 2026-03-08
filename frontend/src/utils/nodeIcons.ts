@@ -18,7 +18,7 @@ import {
   // Communications
   Mail, MessageSquare, Phone,
   // Misc devices
-  Printer, Smartphone, Search, Filter, BookOpen,
+  Printer, Smartphone, Search, Filter, BookOpen, PlugZap,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -45,6 +45,7 @@ export const ICON_REGISTRY: IconEntry[] = [
   { key: 'monitor',    label: 'Workstation',        category: 'Infrastructure', icon: Monitor },
   { key: 'smartphone', label: 'Phone / Mobile',     category: 'Infrastructure', icon: Smartphone },
   { key: 'printer',    label: 'Printer',            category: 'Infrastructure', icon: Printer },
+  { key: 'plugzap',    label: 'CPL / Powerline',    category: 'Infrastructure', icon: PlugZap },
 
   // --- Media ---
   { key: 'play',         label: 'Jellyfin / Emby',   category: 'Media', icon: Play },
