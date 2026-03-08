@@ -6,4 +6,5 @@ export const edgeTypes = {
   iot: HomelableEdge,
   vlan: HomelableEdge,
   virtual: HomelableEdge,
+  cluster: HomelableEdge,
 }
