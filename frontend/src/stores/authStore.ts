@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 interface AuthState {
   token: string | null
@@ -16,6 +16,11 @@ export const useAuthStore = create<AuthState>()(
       login: (token) => set({ token, isAuthenticated: true }),
       logout: () => set({ token: null, isAuthenticated: false }),
     }),
-    { name: 'homelable-auth' }
+    {
+      name: 'homelable-auth',
+      // sessionStorage: scoped to the tab, cleared on browser close.
+      // Prevents XSS from other tabs stealing the token via localStorage.
+      storage: createJSONStorage(() => sessionStorage),
+    }
   )
 )

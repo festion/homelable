@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.backend
     restart: unless-stopped
     environment:
-      SECRET_KEY: ${SECRET_KEY:-change_me_in_production}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in the environment or a .env file}
       SQLITE_PATH: /app/data/homelab.db
       CONFIG_PATH: /app/config.yml
       CORS_ORIGINS: '["http://localhost:3000"]'
