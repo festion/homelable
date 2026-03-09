@@ -15,17 +15,34 @@ step()  { echo -e "\n${CYAN}▶ $*${NC}"; }
 [[ $EUID -ne 0 ]] && error "Run as root on the Proxmox host"
 command -v pct &>/dev/null || error "pct not found — run this on a Proxmox VE host, not inside a container"
 
+# ── Detect available storages for LXC rootfs ──────────────────────────────────
+mapfile -t STORAGES < <(pvesm status --content rootdir 2>/dev/null | awk 'NR>1 && $2=="active" {print $1}')
+[[ ${#STORAGES[@]} -eq 0 ]] && error "No active storage found that supports LXC rootfs (rootdir content type)"
+
+if [[ ${#STORAGES[@]} -eq 1 ]]; then
+  DEFAULT_STORAGE="${STORAGES[0]}"
+else
+  echo ""
+  echo "Available storages:"
+  for i in "${!STORAGES[@]}"; do
+    echo "  $((i+1))) ${STORAGES[$i]}"
+  done
+  read -rp "Select storage [1]: " STORAGE_IDX
+  STORAGE_IDX="${STORAGE_IDX:-1}"
+  DEFAULT_STORAGE="${STORAGES[$((STORAGE_IDX-1))]}"
+fi
+
 # ── Settings (override via env vars) ──────────────────────────────────────────
 CTID="${CTID:-$(pvesh get /cluster/nextid 2>/dev/null || echo 200)}"
 HOSTNAME="${HOSTNAME:-homelable}"
-STORAGE="${STORAGE:-local-lvm}"
+STORAGE="${STORAGE:-$DEFAULT_STORAGE}"
 DISK_SIZE="${DISK_SIZE:-8}"        # GB
 RAM="${RAM:-1024}"                 # MB
 CORES="${CORES:-2}"
 BRIDGE="${BRIDGE:-vmbr0}"
 RAW="https://raw.githubusercontent.com/Pouzor/homelable/main"
 
-step "Creating Homelable LXC (CTID=$CTID, hostname=$HOSTNAME)"
+step "Creating Homelable LXC (CTID=$CTID, hostname=$HOSTNAME, storage=$STORAGE)"
 
 # ── Download Debian 12 template if needed ─────────────────────────────────────
 TEMPLATE_STORAGE=$(pvesm status --content vztmpl | awk 'NR>1 {print $1; exit}')
