@@ -9,10 +9,12 @@ Homelable also offers a healthcheck system (WIP) through multiple methods (ping/
 
 ## Quick Start — Docker
 
+No clone needed. Pull the pre-built images directly:
+
 ```bash
-git clone https://github.com/Pouzor/homelable.git
-cd homelable
-cp .env.example .env
+mkdir homelable && cd homelable
+curl -fsSL https://raw.githubusercontent.com/Pouzor/homelable/main/.env.example -o .env
+curl -fsSL https://raw.githubusercontent.com/Pouzor/homelable/main/docker-compose.prebuilt.yml -o docker-compose.yml
 docker compose up -d
 ```
 
@@ -23,6 +25,15 @@ Open **http://localhost:3000** — login with `admin` / `admin`.
 > Generate a new hash: `docker compose exec backend python -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('yourpassword'))"`
 >
 > ⚠️ Keep the single quotes around the hash value in `.env` — bcrypt hashes contain `$` characters that Docker Compose would otherwise misinterpret.
+
+### Build from source
+
+```bash
+git clone https://github.com/Pouzor/homelable.git
+cd homelable
+cp .env.example .env
+docker compose up -d
+```
 
 ---
 
