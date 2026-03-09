@@ -65,14 +65,14 @@ export const demoNodes: Node<NodeData>[] = [
 ]
 
 export const demoEdges: Edge<EdgeData>[] = [
-  { id: 'e1', source: 'isp-1', target: 'router-1', type: 'ethernet', data: { type: 'ethernet' } },
-  { id: 'e2', source: 'router-1', target: 'switch-1', type: 'ethernet', data: { type: 'ethernet', label: '1G' } },
-  { id: 'e3', source: 'router-1', target: 'switch-2', type: 'ethernet', data: { type: 'ethernet', label: '1G' } },
-  { id: 'e4', source: 'switch-1', target: 'proxmox-1', type: 'ethernet', data: { type: 'ethernet' } },
-  { id: 'e5', source: 'switch-1', target: 'server-1', type: 'ethernet', data: { type: 'ethernet' } },
-  { id: 'e6', source: 'switch-2', target: 'ap-1', type: 'ethernet', data: { type: 'ethernet' } },
-  { id: 'e7', source: 'proxmox-1', target: 'vm-1', type: 'virtual', data: { type: 'virtual' } },
-  { id: 'e8', source: 'proxmox-1', target: 'lxc-1', type: 'virtual', data: { type: 'virtual' } },
-  { id: 'e9', source: 'ap-1', target: 'iot-1', type: 'wifi', data: { type: 'wifi' } },
-  { id: 'e10', source: 'router-1', target: 'server-1', type: 'vlan', data: { type: 'vlan', vlan_id: 20, label: 'VLAN 20' } },
+  { id: 'e1', source: 'isp-1', sourceHandle: 'bottom', target: 'router-1', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet' } },
+  { id: 'e2', source: 'router-1', sourceHandle: 'bottom', target: 'switch-1', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet', label: '1G' } },
+  { id: 'e3', source: 'router-1', sourceHandle: 'bottom', target: 'switch-2', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet', label: '1G' } },
+  { id: 'e4', source: 'switch-1', sourceHandle: 'bottom', target: 'proxmox-1', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet' } },
+  { id: 'e5', source: 'switch-1', sourceHandle: 'bottom', target: 'server-1', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet' } },
+  { id: 'e6', source: 'switch-2', sourceHandle: 'bottom', target: 'ap-1', targetHandle: 'top', type: 'ethernet', data: { type: 'ethernet' } },
+  { id: 'e7', source: 'proxmox-1', sourceHandle: 'bottom', target: 'vm-1', targetHandle: 'top', type: 'virtual', data: { type: 'virtual' } },
+  { id: 'e8', source: 'proxmox-1', sourceHandle: 'bottom', target: 'lxc-1', targetHandle: 'top', type: 'virtual', data: { type: 'virtual' } },
+  { id: 'e9', source: 'ap-1', sourceHandle: 'bottom', target: 'iot-1', targetHandle: 'top', type: 'wifi', data: { type: 'wifi' } },
+  { id: 'e10', source: 'router-1', sourceHandle: 'bottom', target: 'server-1', targetHandle: 'top', type: 'vlan', data: { type: 'vlan', vlan_id: 20, label: 'VLAN 20' } },
 ]
