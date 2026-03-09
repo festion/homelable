@@ -33,7 +33,6 @@ else
 fi
 
 # ── Settings (override via env vars) ──────────────────────────────────────────
-CTID="${CTID:-$(pvesh get /cluster/nextid 2>/dev/null || echo 200)}"
 CT_HOSTNAME="${CT_HOSTNAME:-homelable}"
 STORAGE="${STORAGE:-$DEFAULT_STORAGE}"
 DISK_SIZE="${DISK_SIZE:-8}"        # GB
@@ -41,7 +40,26 @@ RAM="${RAM:-1024}"                 # MB
 CORES="${CORES:-2}"
 BRIDGE="${BRIDGE:-vmbr0}"
 RAW="https://raw.githubusercontent.com/Pouzor/homelable/main"
-ROOT_PASSWORD="${ROOT_PASSWORD:-$(openssl rand -base64 12 | tr -d '+/=')}"
+
+# ── Interactive prompts ────────────────────────────────────────────────────────
+DEFAULT_CTID="$(pvesh get /cluster/nextid 2>/dev/null || echo 200)"
+
+if [[ -z "${CTID:-}" ]]; then
+  read -rp "Container ID [${DEFAULT_CTID}]: " CTID_INPUT
+  CTID="${CTID_INPUT:-$DEFAULT_CTID}"
+fi
+
+if [[ -z "${ROOT_PASSWORD:-}" ]]; then
+  while true; do
+    read -rsp "Root password for LXC container: " ROOT_PASSWORD
+    echo ""
+    [[ -z "$ROOT_PASSWORD" ]] && warn "Password cannot be empty, try again." && continue
+    read -rsp "Confirm root password: " ROOT_PASSWORD_CONFIRM
+    echo ""
+    [[ "$ROOT_PASSWORD" == "$ROOT_PASSWORD_CONFIRM" ]] && break
+    warn "Passwords do not match, try again."
+  done
+fi
 
 step "Creating Homelable LXC (CTID=$CTID, hostname=$CT_HOSTNAME, storage=$STORAGE)"
 
@@ -110,8 +128,7 @@ echo ""
 echo -e "  ${GREEN}✓ Homelable installed in LXC $CTID${NC}"
 echo -e "  ${GREEN}✓ Open http://${IP}${NC}"
 echo -e "  Homelable login:  ${YELLOW}admin / admin${NC}"
-echo -e "  LXC root SSH:     ${YELLOW}root / ${ROOT_PASSWORD}${NC}"
-echo -e "  ${YELLOW}⚠ Change both passwords after first login${NC}"
-echo -e "  ${YELLOW}  - Homelable: edit /opt/homelable/backend/.env (AUTH_PASSWORD_HASH)${NC}"
-echo -e "  ${YELLOW}  - LXC root:  passwd root  (inside the container)${NC}"
+echo -e "  LXC root SSH:     ${YELLOW}root / <password you set>${NC}"
+echo -e "  ${YELLOW}⚠ Change the Homelable password after first login${NC}"
+echo -e "  ${YELLOW}  - edit /opt/homelable/backend/.env (AUTH_PASSWORD_HASH)${NC}"
 echo ""
