@@ -76,23 +76,32 @@ pct create "$CTID" "$TEMPLATE" \
 
 info "Container $CTID created and started"
 
-# ── Wait for network ───────────────────────────────────────────────────────────
-info "Waiting for container network..."
-for i in $(seq 1 20); do
-  if pct exec "$CTID" -- ping -c1 -W1 8.8.8.8 &>/dev/null; then
+# ── Wait for container to be ready ────────────────────────────────────────────
+info "Waiting for container to be ready..."
+for i in $(seq 1 30); do
+  if pct exec "$CTID" -- test -x /usr/bin/apt-get &>/dev/null; then
     break
   fi
-  [[ $i -eq 20 ]] && error "Container has no network after 20s — check bridge $BRIDGE"
+  [[ $i -eq 30 ]] && error "Container did not become ready after 30s"
+  sleep 1
+done
+
+# Wait a bit more for network (DHCP lease)
+info "Waiting for network (DHCP)..."
+for i in $(seq 1 20); do
+  if pct exec "$CTID" -- sh -c "ip route | grep -q default" &>/dev/null; then
+    break
+  fi
+  [[ $i -eq 20 ]] && error "Container has no default route after 20s — check bridge $BRIDGE"
   sleep 1
 done
 
 # ── Grant NET_RAW for nmap (ping-based checks) ─────────────────────────────────
-# lxc.cap.keep must include net_raw for nmap SYN scan in unprivileged containers
-pct set "$CTID" --mp0 "" 2>/dev/null || true
 echo "lxc.cap.keep = net_raw net_bind_service" >> /etc/pve/lxc/${CTID}.conf 2>/dev/null || true
 
-# ── Run the installer inside the container ────────────────────────────────────
+# ── Bootstrap curl then run the installer ─────────────────────────────────────
 step "Running Homelable installer inside container $CTID..."
+pct exec "$CTID" -- apt-get install -y -qq curl
 pct exec "$CTID" -- bash -c "curl -fsSL ${RAW}/scripts/lxc-install.sh | bash"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
