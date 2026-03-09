@@ -4,14 +4,12 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set in the environment or a .env file}
+      # Override env_file values that differ in Docker
       SQLITE_PATH: /app/data/homelab.db
       CORS_ORIGINS: '["http://localhost:3000"]'
-      AUTH_USERNAME: ${AUTH_USERNAME:-admin}
-      AUTH_PASSWORD_HASH: ${AUTH_PASSWORD_HASH}
-      SCANNER_RANGES: ${SCANNER_RANGES:-["192.168.1.0/24"]}
-      STATUS_CHECKER_INTERVAL: ${STATUS_CHECKER_INTERVAL:-60}
     volumes:
       - backend_data:/app/data
     networks:
