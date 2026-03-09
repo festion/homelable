@@ -17,8 +17,13 @@ jobs:
         include:
           - image: ghcr.io/pouzor/homelable-backend
             dockerfile: Dockerfile.backend
+            build_args: ""
           - image: ghcr.io/pouzor/homelable-frontend
             dockerfile: Dockerfile.frontend
+            build_args: ""
+          - image: ghcr.io/pouzor/homelable-frontend-standalone
+            dockerfile: Dockerfile.frontend
+            build_args: "VITE_STANDALONE=true"
 
     steps:
       - uses: actions/checkout@v4
@@ -56,5 +61,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: ${{ matrix.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

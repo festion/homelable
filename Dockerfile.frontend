@@ -1,6 +1,9 @@
 # Stage 1: build
 FROM node:20-alpine AS builder
 
+ARG VITE_STANDALONE=false
+ENV VITE_STANDALONE=$VITE_STANDALONE
+
 WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm ci

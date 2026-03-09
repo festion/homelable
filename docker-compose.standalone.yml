@@ -1,0 +1,6 @@
+services:
+  frontend:
+    image: ghcr.io/pouzor/homelable-frontend-standalone:latest
+    restart: unless-stopped
+    ports:
+      - "3000:80"

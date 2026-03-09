@@ -12,13 +12,15 @@ interface StatusMessage {
   devices_found?: number
 }
 
+const STANDALONE = import.meta.env.VITE_STANDALONE === 'true'
+
 export function useStatusPolling() {
   const wsRef = useRef<WebSocket | null>(null)
   const { updateNode, notifyScanDeviceFound } = useCanvasStore()
   const { isAuthenticated, token } = useAuthStore()
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return
+    if (STANDALONE || !isAuthenticated || !token) return
 
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const host = window.location.hostname

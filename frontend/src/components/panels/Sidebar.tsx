@@ -6,14 +6,17 @@ import { scanApi } from '@/api/client'
 import { toast } from 'sonner'
 import { PendingDeviceModal, type PendingDevice } from '@/components/modals/PendingDeviceModal'
 
+const STANDALONE = import.meta.env.VITE_STANDALONE === 'true'
+
 type SidebarView = 'canvas' | 'pending' | 'hidden' | 'history'
 
-const VIEWS = [
+const ALL_VIEWS = [
   { id: 'canvas' as SidebarView, icon: LayoutDashboard, label: 'Canvas' },
   { id: 'pending' as SidebarView, icon: ScanLine, label: 'Pending Devices' },
   { id: 'hidden' as SidebarView, icon: EyeOff, label: 'Hidden Devices' },
   { id: 'history' as SidebarView, icon: Clock, label: 'Scan History' },
 ]
+const VIEWS = STANDALONE ? ALL_VIEWS.slice(0, 1) : ALL_VIEWS
 
 interface ScanRun {
   id: string
@@ -123,7 +126,7 @@ export function Sidebar({ onAddNode, onScan, onSave, onNodeApproved }: SidebarPr
       {/* Actions */}
       <div className="flex flex-col gap-0.5 p-2 border-t border-border">
         <SidebarItem icon={Plus} label="Add Node" collapsed={collapsed} onClick={onAddNode} />
-        <SidebarItem icon={ScanLine} label="Scan Network" collapsed={collapsed} onClick={handleScan} />
+        {!STANDALONE && <SidebarItem icon={ScanLine} label="Scan Network" collapsed={collapsed} onClick={handleScan} />}
         <SidebarItem
           icon={Save}
           label="Save Canvas"

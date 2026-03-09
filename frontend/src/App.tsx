@@ -21,6 +21,9 @@ import { demoNodes, demoEdges } from '@/utils/demoData'
 import { useStatusPolling } from '@/hooks/useStatusPolling'
 import type { NodeData, EdgeData } from '@/types'
 
+const STANDALONE = import.meta.env.VITE_STANDALONE === 'true'
+const STANDALONE_STORAGE_KEY = 'homelable_canvas'
+
 export default function App() {
   const { loadCanvas, markSaved, selectedNodeId, addNode, updateNode, onConnect, updateEdge, deleteEdge, setProxmoxContainerMode, nodes, edges } = useCanvasStore()
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -37,6 +40,12 @@ export default function App() {
   // Declare handleSave before the Ctrl+S effect so it is in scope
   const handleSave = useCallback(async () => {
     try {
+      if (STANDALONE) {
+        localStorage.setItem(STANDALONE_STORAGE_KEY, JSON.stringify({ nodes, edges }))
+        markSaved()
+        toast.success('Canvas saved')
+        return
+      }
       const nodesToSave = nodes.map((n) => ({
         id: n.id,
         type: n.data.type,
@@ -84,8 +93,22 @@ export default function App() {
   const handleSaveRef = useRef(handleSave)
   useEffect(() => { handleSaveRef.current = handleSave }, [handleSave])
 
-  // Load canvas on auth
+  // Load canvas on auth (or immediately in standalone mode)
   useEffect(() => {
+    if (STANDALONE) {
+      try {
+        const saved = localStorage.getItem(STANDALONE_STORAGE_KEY)
+        if (saved) {
+          const { nodes: savedNodes, edges: savedEdges } = JSON.parse(saved)
+          loadCanvas(savedNodes, savedEdges)
+        } else {
+          loadCanvas(demoNodes, demoEdges)
+        }
+      } catch {
+        loadCanvas(demoNodes, demoEdges)
+      }
+      return
+    }
     if (!isAuthenticated) return
     canvasApi.load()
       .then((res) => {
@@ -253,7 +276,7 @@ export default function App() {
   const editNode = editNodeId ? nodes.find((n) => n.id === editNodeId) : null
   const editEdge = editEdgeId ? edges.find((e) => e.id === editEdgeId) : null
 
-  if (!isAuthenticated) return <LoginPage />
+  if (!STANDALONE && !isAuthenticated) return <LoginPage />
 
   return (
     <TooltipProvider>
@@ -321,11 +344,13 @@ export default function App() {
           title="Edit Link"
         />
 
-        <ScanConfigModal
-          open={scanConfigOpen}
-          onClose={() => setScanConfigOpen(false)}
-          onScanNow={() => toast.success('Scan triggered')}
-        />
+        {!STANDALONE && (
+          <ScanConfigModal
+            open={scanConfigOpen}
+            onClose={() => setScanConfigOpen(false)}
+            onScanNow={() => toast.success('Scan triggered')}
+          />
+        )}
 
         <Toaster theme="dark" position="bottom-right" />
       </ReactFlowProvider>
