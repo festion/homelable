@@ -9,7 +9,7 @@ services:
       SQLITE_PATH: /app/data/homelab.db
       CORS_ORIGINS: '["http://localhost:3000"]'
       AUTH_USERNAME: ${AUTH_USERNAME:-admin}
-      AUTH_PASSWORD_HASH: ${AUTH_PASSWORD_HASH:?AUTH_PASSWORD_HASH must be set}
+      AUTH_PASSWORD_HASH: ${AUTH_PASSWORD_HASH}
       SCANNER_RANGES: ${SCANNER_RANGES:-["192.168.1.0/24"]}
       STATUS_CHECKER_INTERVAL: ${STATUS_CHECKER_INTERVAL:-60}
     volumes:
