@@ -20,10 +20,10 @@ import type { NodeData, EdgeData } from '@/types'
 interface CanvasContainerProps {
   onConnect?: (connection: Connection) => void
   onEdgeDoubleClick?: (edge: Edge<EdgeData>) => void
-  onNodeDragStop?: () => void
+  onNodeDragStart?: () => void
 }
 
-export function CanvasContainer({ onConnect: onConnectProp, onEdgeDoubleClick, onNodeDragStop }: CanvasContainerProps) {
+export function CanvasContainer({ onConnect: onConnectProp, onEdgeDoubleClick, onNodeDragStart }: CanvasContainerProps) {
   const {
     nodes, edges,
     onNodesChange, onEdgesChange,
@@ -56,7 +56,7 @@ export function CanvasContainer({ onConnect: onConnectProp, onEdgeDoubleClick, o
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}
         onEdgeDoubleClick={handleEdgeDoubleClick}
-        onNodeDragStop={onNodeDragStop}
+        onNodeDragStart={onNodeDragStart}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         snapToGrid

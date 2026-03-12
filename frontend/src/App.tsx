@@ -435,7 +435,7 @@ export default function App() {
             />
             <div className="flex flex-1 min-h-0">
               <div ref={canvasRef} className="flex-1 min-w-0 h-full">
-                <CanvasContainer onConnect={handleEdgeConnect} onEdgeDoubleClick={handleEdgeDoubleClick} onNodeDragStop={snapshotHistory} />
+                <CanvasContainer onConnect={handleEdgeConnect} onEdgeDoubleClick={handleEdgeDoubleClick} onNodeDragStart={snapshotHistory} />
               </div>
               {selectedNodeId && <DetailPanel onEdit={handleEditNode} />}
             </div>
