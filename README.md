@@ -199,7 +199,13 @@ docker compose up -d mcp
 
 **3. Configure your AI client:**
 
-**Claude Code** (`~/.claude/claude_desktop_config.json` or via `/mcp` in the CLI):
+**Claude Code** — run this command in your terminal:
+```bash
+claude mcp add --transport sse homelable http://<your-homelab-ip>:8001/mcp \
+  --header "X-API-Key: mcp_sk_yourkey"
+```
+
+Or add it manually to `~/.claude.json`:
 ```json
 {
   "mcpServers": {
@@ -214,7 +220,7 @@ docker compose up -d mcp
 }
 ```
 
-**Claude Desktop** (same config file, usually `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+**Claude Desktop** — edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 ```json
 {
   "mcpServers": {
