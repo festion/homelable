@@ -1,3 +1,4 @@
+import pytest
 from httpx import AsyncClient
 
 
@@ -28,3 +29,30 @@ async def test_health_is_public(client: AsyncClient):
     res = await client.get("/api/v1/health")
     assert res.status_code == 200
     assert res.json() == {"status": "ok"}
+
+
+# --- MCP service key auth ---
+
+@pytest.fixture
+def with_service_key():
+    from app.core.config import settings
+    settings.mcp_service_key = "test-service-key"
+    yield "test-service-key"
+    settings.mcp_service_key = ""
+
+
+async def test_service_key_grants_access(client: AsyncClient, with_service_key):
+    res = await client.get("/api/v1/nodes", headers={"X-MCP-Service-Key": with_service_key})
+    assert res.status_code == 200
+
+
+async def test_service_key_wrong_value(client: AsyncClient, with_service_key):
+    res = await client.get("/api/v1/nodes", headers={"X-MCP-Service-Key": "wrong-key"})
+    assert res.status_code == 401
+
+
+async def test_service_key_disabled_when_not_configured(client: AsyncClient):
+    from app.core.config import settings
+    settings.mcp_service_key = ""
+    res = await client.get("/api/v1/nodes", headers={"X-MCP-Service-Key": "any-key"})
+    assert res.status_code == 401
