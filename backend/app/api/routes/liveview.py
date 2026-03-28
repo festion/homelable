@@ -1,3 +1,4 @@
+import hmac
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -26,7 +27,7 @@ async def liveview_canvas(
     """
     if not settings.liveview_key:
         raise HTTPException(status_code=403, detail="Live view is disabled")
-    if not key or key != settings.liveview_key:
+    if not key or not hmac.compare_digest(key, settings.liveview_key):
         raise HTTPException(status_code=403, detail="Invalid live view key")
 
     nodes = (await db.execute(select(Node))).scalars().all()

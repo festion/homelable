@@ -88,12 +88,12 @@ describe('LiveView (non-standalone)', () => {
     })
   })
 
-  it('shows invalid-key error for unexpected API errors', async () => {
+  it('shows network-error for non-response errors (offline, CORS, 500)', async () => {
     setSearch('?key=anything')
     vi.mocked(liveviewApi.load).mockRejectedValue(new Error('network'))
     render(<LiveView />)
     await waitFor(() => {
-      expect(screen.getByText(/Invalid or expired/)).toBeDefined()
+      expect(screen.getByText(/Could not reach the server/)).toBeDefined()
     })
   })
 

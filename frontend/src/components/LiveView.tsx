@@ -33,7 +33,7 @@ import type { NodeData } from '@/types'
 const STANDALONE = import.meta.env.VITE_STANDALONE === 'true'
 const STORAGE_KEY = 'homelable_canvas'
 
-type ViewState = 'loading' | 'disabled' | 'invalid-key' | 'no-key' | 'ready'
+type ViewState = 'loading' | 'disabled' | 'invalid-key' | 'no-key' | 'network-error' | 'ready'
 
 function LiveViewCanvas() {
   const { nodes, edges, loadCanvas } = useCanvasStore()
@@ -81,7 +81,8 @@ function LiveViewCanvas() {
         setViewState('ready')
       })
       .catch((err) => {
-        const detail: string = err.response?.data?.detail ?? ''
+        if (!err.response) { setViewState('network-error'); return }
+        const detail: string = err.response.data?.detail ?? ''
         setViewState(detail === 'Live view is disabled' ? 'disabled' : 'invalid-key')
       })
   }, [loadCanvas])
@@ -104,6 +105,7 @@ function LiveViewCanvas() {
       disabled: 'Live view is disabled on this instance.',
       'invalid-key': 'Invalid or expired live view key.',
       'no-key': 'Missing key — use ?key=your-secret in the URL.',
+      'network-error': 'Could not reach the server. Check your connection.',
     }
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#0d1117]">
