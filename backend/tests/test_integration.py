@@ -17,7 +17,7 @@ import pytest
 
 BASE_URL = os.environ.get("INTEGRATION_BASE_URL", "")
 USERNAME = os.environ.get("INTEGRATION_USERNAME", "admin")
-PASSWORD = os.environ.get("INTEGRATION_PASSWORD", "")
+_PASSWORD_RAW = os.environ.get("INTEGRATION_PASSWORD", "")
 
 pytestmark = pytest.mark.skipif(
     not BASE_URL,
@@ -25,20 +25,65 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+def _require_password() -> str:
+    if not _PASSWORD_RAW:
+        pytest.fail("INTEGRATION_PASSWORD env var is required for live-stack tests")
+    return _PASSWORD_RAW
+
+
+PASSWORD = _PASSWORD_RAW  # resolved at call time via _require_password() in fixture
+
+
+# ── Fixtures ──────────────────────────────────────────────────────────────────
+
 @pytest.fixture(scope="module")
 def token() -> str:
+    pw = _require_password()
     res = httpx.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"username": USERNAME, "password": PASSWORD},
+        json={"username": USERNAME, "password": pw},
         timeout=10,
     )
-    assert res.status_code == 200, f"Login failed: {res.text}"
+    assert res.status_code == 200, f"Login failed ({res.status_code}): {res.text}"
     return res.json()["access_token"]
 
 
 @pytest.fixture(scope="module")
 def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture()
+def restored_canvas(auth):
+    """Save the current canvas before the test and restore it afterward."""
+    before = httpx.get(f"{BASE_URL}/api/v1/canvas", headers=auth, timeout=10).json()
+    yield
+    httpx.post(f"{BASE_URL}/api/v1/canvas/save", json=before, headers=auth, timeout=10)
+
+
+def _save_canvas(auth, nodes, edges=None):
+    payload = {
+        "nodes": nodes,
+        "edges": edges or [],
+        "viewport": {"x": 0, "y": 0, "zoom": 1},
+    }
+    res = httpx.post(f"{BASE_URL}/api/v1/canvas/save", json=payload, headers=auth, timeout=10)
+    assert res.status_code == 200, f"Canvas save failed ({res.status_code}): {res.text}"
+    return res
+
+
+def _node(node_id: str, label: str, node_type: str = "server", **extra) -> dict:
+    """Build a NodeSave-compatible dict (flat API format, not React Flow format)."""
+    return {
+        "id": node_id,
+        "type": node_type,
+        "label": label,
+        "status": "unknown",
+        "services": [],
+        "pos_x": extra.pop("pos_x", 0),
+        "pos_y": extra.pop("pos_y", 0),
+        **extra,
+    }
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
@@ -51,9 +96,10 @@ def test_health_endpoint():
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 def test_login_returns_token():
+    pw = _require_password()
     res = httpx.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"username": USERNAME, "password": PASSWORD},
+        json={"username": USERNAME, "password": pw},
         timeout=10,
     )
     assert res.status_code == 200
@@ -65,7 +111,7 @@ def test_login_returns_token():
 def test_login_bad_credentials():
     res = httpx.post(
         f"{BASE_URL}/api/v1/auth/login",
-        json={"username": USERNAME, "password": "wrong-password"},
+        json={"username": USERNAME, "password": "definitely-wrong"},
         timeout=10,
     )
     assert res.status_code == 401
@@ -88,111 +134,52 @@ def test_canvas_load_returns_valid_structure(auth):
     assert isinstance(data["edges"], list)
 
 
-def test_canvas_save_and_reload(auth):
-    payload = {
-        "nodes": [
-            {
-                "id": "integ-node-1",
-                "type": "server",
-                "position": {"x": 100, "y": 200},
-                "data": {
-                    "label": "CI Server",
-                    "type": "server",
-                    "status": "unknown",
-                    "services": [],
-                },
-                "width": 240,
-                "height": 100,
-            }
-        ],
-        "edges": [],
-        "viewport": {"x": 0, "y": 0, "zoom": 1},
-    }
-    save_res = httpx.post(
-        f"{BASE_URL}/api/v1/canvas/save",
-        json=payload,
-        headers=auth,
-        timeout=10,
-    )
-    assert save_res.status_code == 200
+def test_canvas_save_and_reload(auth, restored_canvas):
+    _save_canvas(auth, [_node("integ-node-1", "CI Server", pos_x=100, pos_y=200)])
 
-    load_res = httpx.get(f"{BASE_URL}/api/v1/canvas", headers=auth, timeout=10)
-    assert load_res.status_code == 200
-    nodes = load_res.json()["nodes"]
-    assert len(nodes) == 1
+    data = httpx.get(f"{BASE_URL}/api/v1/canvas", headers=auth, timeout=10).json()
+    assert len(data["nodes"]) == 1
 
-    node = nodes[0]
+    node = data["nodes"][0]
+    assert node["id"] == "integ-node-1"
     assert node["label"] == "CI Server"
     assert node["type"] == "server"
-    assert node["x"] == pytest.approx(100)
-    assert node["y"] == pytest.approx(200)
+    assert node["pos_x"] == 100
+    assert node["pos_y"] == 200
 
 
-def test_canvas_save_preserves_node_dimensions(auth):
+def test_canvas_save_preserves_node_dimensions(auth, restored_canvas):
     """Width/height survive a save→reload cycle through the real DB."""
-    payload = {
-        "nodes": [
-            {
-                "id": "resized-node",
-                "type": "router",
-                "position": {"x": 50, "y": 50},
-                "data": {
-                    "label": "Big Router",
-                    "type": "router",
-                    "status": "unknown",
-                    "services": [],
-                },
-                "width": 320,
-                "height": 150,
-            }
-        ],
-        "edges": [],
-        "viewport": {"x": 0, "y": 0, "zoom": 1},
-    }
-    httpx.post(f"{BASE_URL}/api/v1/canvas/save", json=payload, headers=auth, timeout=10)
+    _save_canvas(auth, [
+        _node("resized-node", "Big Router", node_type="router", width=320.0, height=150.0)
+    ])
 
     nodes = httpx.get(f"{BASE_URL}/api/v1/canvas", headers=auth, timeout=10).json()["nodes"]
     node = next((n for n in nodes if n["id"] == "resized-node"), None)
     assert node is not None
-    assert node["width"] == pytest.approx(320)
-    assert node["height"] == pytest.approx(150)
+    assert node["width"] == 320.0
+    assert node["height"] == 150.0
 
 
-def test_canvas_save_with_edge(auth):
-    payload = {
-        "nodes": [
-            {
-                "id": "n-src",
-                "type": "router",
-                "position": {"x": 0, "y": 0},
-                "data": {"label": "Router", "type": "router", "status": "unknown", "services": []},
-            },
-            {
-                "id": "n-dst",
-                "type": "server",
-                "position": {"x": 200, "y": 0},
-                "data": {"label": "Server", "type": "server", "status": "unknown", "services": []},
-            },
+def test_canvas_save_with_edge(auth, restored_canvas):
+    _save_canvas(
+        auth,
+        nodes=[
+            _node("n-src", "Router", node_type="router"),
+            _node("n-dst", "Server", node_type="server", pos_x=200),
         ],
-        "edges": [
-            {
-                "id": "e-eth",
-                "source": "n-src",
-                "target": "n-dst",
-                "type": "ethernet",
-                "data": {"type": "ethernet"},
-            }
-        ],
-        "viewport": {"x": 0, "y": 0, "zoom": 1},
-    }
-    save_res = httpx.post(
-        f"{BASE_URL}/api/v1/canvas/save", json=payload, headers=auth, timeout=10
+        edges=[{
+            "id": "e-eth",
+            "source": "n-src",
+            "target": "n-dst",
+            "type": "ethernet",
+        }],
     )
-    assert save_res.status_code == 200
 
     data = httpx.get(f"{BASE_URL}/api/v1/canvas", headers=auth, timeout=10).json()
     assert len(data["edges"]) == 1
     edge = data["edges"][0]
-    assert edge["source_id"] == "n-src"
-    assert edge["target_id"] == "n-dst"
+    # EdgeResponse uses source/target (not source_id/target_id)
+    assert edge["source"] == "n-src"
+    assert edge["target"] == "n-dst"
     assert edge["type"] == "ethernet"
