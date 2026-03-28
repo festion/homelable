@@ -32,7 +32,7 @@ async def check_node(check_method: str, target: str | None, ip: str | None) -> d
                 ok = await _http_get(url)
             case "https":
                 url = host if host.startswith("https") else f"https://{host}"
-                ok = await _http_get(url, verify=True)
+                ok = await _http_get(url, verify=False)
             case "tcp":
                 host_part, _, port_str = host.rpartition(":")
                 port = int(port_str) if port_str.isdigit() else 80
